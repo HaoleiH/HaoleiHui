@@ -1,9 +1,7 @@
 ---
-
 layout: default
 title: test title for Cayman theme
 description: Cayman is a clean, responsive theme for GitHub Pages.
-
 ---
 
 Text can be **bold**, _italic_, or ~~strikethrough~~.

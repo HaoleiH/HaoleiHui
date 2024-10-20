@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plot Data from Local File with Plotly</title>
-    <!-- Plotly.js library (local) -->
+    <!-- Plotly.js library -->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         /* Center the plot */
@@ -98,6 +98,10 @@
 
             <label for="legendY">Legend Position Y:</label>
             <input type="number" id="legendY" value="0.9" step="0.01">
+
+            <!-- Legend Name Input -->
+            <label for="legendName">Legend Name:</label>
+            <input type="text" id="legendName" placeholder="Legend name (optional)">
         </div>
     </div>
 
@@ -205,16 +209,21 @@
             const yIndex = document.getElementById('yColumn').value; // Get selected Y column index
             const plotType = document.getElementById('plotType').value; // Get selected plot type
 
+            // Get custom legend name (if provided)
+            const customLegendName = document.getElementById('legendName').value;
+            const defaultLegendName = `${columnNames[xIndex]} vs ${columnNames[yIndex]}`; // Default legend name
+            const legendName = customLegendName || defaultLegendName; // Use custom legend name or default
+
             // Create a trace for Plotly
             const trace = {
                 x: parsedData.map(row => row[xIndex]), // X-axis data
                 y: parsedData.map(row => row[yIndex]), // Y-axis data
-                mode: plotType === 'lines+markers' ? 'lines+markers' : plotType, // Plot type (e.g., line, scatter, bar)
-                type: plotType === 'bar' ? 'bar' : 'scatter', // Scatter for line and scatter types
-                name: `${columnNames[xIndex]} vs ${columnNames[yIndex]}` // Name of the trace for the legend
+                mode: plotType === 'lines+markers' ? 'lines+markers' : plotType, // Plot type (line, scatter, etc.)
+                type: plotType === 'bar' ? 'bar' : 'scatter', // Use 'bar' for bar plots, otherwise scatter
+                name: legendName // Use the custom legend name or default
             };
 
-            traces.push(trace); // Add the new trace to the traces array
+            traces.push(trace); // Add trace to the traces array
 
             // Get axis titles and legend positions from input fields
             const xAxisTitle = document.getElementById('xAxisTitle').value || 'X Axis';
@@ -222,7 +231,7 @@
             const legendX = parseFloat(document.getElementById('legendX').value) || 0.8; // Default to 0.8
             const legendY = parseFloat(document.getElementById('legendY').value) || 0.9; // Default to 0.9
 
-            // Call the function to plot the data with Plotly
+            // Call plotData function to render the plot
             plotData(traces, xAxisTitle, yAxisTitle, legendX, legendY);
         });
 

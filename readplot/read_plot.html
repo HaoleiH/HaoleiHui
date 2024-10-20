@@ -142,34 +142,41 @@
             return selectedValue === 'auto' ? null : selectedValue; // Return auto-detected or user-selected separator
         }
 
-        // Function to detect the separator in the text
-        function detectSeparator(text) {
+
+        // Function to detect the separator in the text after skipping rows
+        function detectSeparator(text, skipRows) {
             const potentialSeparators = [',', ';', '\t', '|', ' ']; // Common separators
-            const firstLine = text.split('\n')[0]; // Get the first line of the file
+            const rows = text.split('\n'); // Split the text into rows
+            const firstDataLine = rows[skipRows+1]; // Use the line after skipping rows
+        
             let bestSeparator = ',';
             let maxCount = 0;
-
-            // Check which separator appears most often in the first line
+        
+            // Check which separator appears most often in the first non-skipped line
             potentialSeparators.forEach(separator => {
-                const count = firstLine.split(separator).length;
+                const count = firstDataLine.split(separator).length;
                 if (count > maxCount) {
                     maxCount = count;
                     bestSeparator = separator;
                 }
             });
-
+        
             return bestSeparator;
         }
 
+
         // Function to parse CSV data using the detected separator
+        // Function to parse CSV data using the detected separator and skipRows value
         function parseCSV(text, separator, skipRows) {
-            // If separator is null (auto-detect), detect it using the text
+            // If separator is null (auto-detect), detect it using the first non-skipped line
             if (!separator) {
-                separator = detectSeparator(text);
+                separator = detectSeparator(text, skipRows);
             }
+        
             const rows = text.split('\n'); // Split the text into rows
-            return rows.slice(skipRows).map(row => row.split(separator)); // Skip the specified number of rows
+            return rows.slice(skipRows).map(row => row.split(separator)); // Skip the specified number of rows and split by separator
         }
+
 
         // Function to populate dropdowns with column names
         function populateDropdowns(columns) {

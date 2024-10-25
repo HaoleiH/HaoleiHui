@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sputter Usage with Logger IndexedDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Header styles */
+        h2 {
+            text-align: center;
+            color: #4a4a4a;
+        }
+
+        h3 {
+            color: #4a4a4a;
+        }
+
+        /* Form styles */
+        form {
+            background: white;
+            padding: 15px;  /* Reduced padding */
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            max-width: 600px; /* Set a maximum width */
+            margin-left: auto; /* Center horizontally */
+            margin-right: auto; /* Center horizontally */
+        }
+
+        label {
+            display: block;
+            margin: 0px 0 0px; /* Reduced margins */
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 98%;
+            padding: 4px;  /* Reduced padding */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 0px; /* Further reduced margin */
+            font-size: 15px; /* Slightly smaller font size */
+        }
+
+        /* Button styles */
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 12px; /* Reduced padding */
+            cursor: pointer;
+            font-size: 15px; /* Slightly smaller font size */
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        td {
+            background-color: #ffffff;
+        }
+
+        /* Summary styles */
+        #usageSummary {
+            margin-top: 20px;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #usageSummary li {
+            background-color: #e7f3ff;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* Form container */
+        .form-container {
+            display: flex;
+            justify-content: space-between; /* Distributes space between the form and notes */
+            max-width: 800px; /* Set a maximum width for the container */
+            margin: auto; /* Center the container */
+        }
+
+        /* Notes section styles */
+        .notes {
+            background: #e7f3ff; /* Light blue background for visibility */
+            padding: 15px; /* Padding for the notes section */
+            border-radius: 8px; /* Rounded corners */
+            /*width: 200px;  Fixed width for the notes section */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Shadow for a slight elevation effect */
+            margin-left: auto; /* Center horizontally */
+            margin-right: auto; /* Center horizontally */
+        }
+
+        .notes h3 {
+            margin-top: 0; /* Remove top margin */
+            font-size: 18px; /* Increase heading font size */
+            color: #090ca8; /* Color for the heading */
+        }
+
+        .notes p {
+            margin: 5px 0; /* Margin for the paragraph */
+            font-size: 14px; /* Font size for notes text */
+            color: #150aae; /* Text color */
+        }
+        .notes li {
+            margin: 5px 0; /* Margin for the paragraph */
+            font-size: 14px; /* Font size for notes text */
+            color: #150aae; /* Text color */
+        }
+
+    </style>
+    
+</head>
+<body>
+    <h2>Sputter Usage Log Sheet</h2>
+    <form id="logForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required><br><br>
+        
+        <label for="usage">Usage Time (min):</label>
+        <input type="number" id="usage" name="usage" required min="0" step="0.1"><br><br>
+
+        <label for="power">Power (W):</label>
+        <input type="number" id="power" name="power" required min="0" step="0.1"><br><br>
+
+        <label for="voltage">Voltage (V):</label>
+        <input type="number" id="voltage" name="voltage" required min="0" step="0.1"><br><br>
+
+        <label for="current">Current (A):</label>
+        <input type="number" id="current" name="current" required min="0" step="0.1"><br><br>
+        
+        <label for="material">Material:</label>
+        <select id="material" name="material" required>
+            <option value="Ba">Ba</option>
+            <option value="Sr">Sr</option>
+            <option value="Zr">Zr</option>
+            <option value="Hf">Hf</option>
+            <option value="Al">Al</option>
+            <option value="Ag">Ag</option>
+        </select><br><br>
+
+        <label for="comment">Comment:</label>
+        <textarea id="comment" name="comment" rows="3" cols="30" placeholder="Optional"></textarea><br><br>
+        
+        <button type="button" onclick="saveLog()">Save</button>
+        <button type="button" onclick="exportLogs()">Export to CSV</button>
+        <button type="button" onclick="clearAllData()">Clear All Data</button>
+    </form>
+
+    
+    
+
+    <h3>Saved Logs</h3>
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Usage Time (min)</th>
+                <th>Power (W)</th>
+                <th>Voltage (V)</th>
+                <th>Current (A)</th>
+                <th>Material</th>
+                <th>Comment</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    
+    <h3>Accumulated Usage Time</h3>
+    <ul id="usageSummary"></ul>
+
+    <!-- Notes section moved here -->
+    <div class="notes">
+        <h3>Notes</h3>
+        <ol type="1">
+            <li>Do not click "Clear All Data" unless you know what will happen. Always do "Export to CSV" before "Clear All Data".</li>
+            <li>Logs are save to browser local storage by IndexedDB. It will not get lost if you don't clear the cache of the browser.</li>
+            <li>If you move the position of this file, logs will not go toegther</li>
+        </ol>
+    </div>
+    <script>
+        let db;
+
+        // Open IndexedDB database
+        function openDatabase() {
+            const request = indexedDB.open("pcUsageLogsDB", 1);
+
+            request.onerror = function(event) {
+                console.error("Database error:", event.target.error);
+            };
+
+            request.onsuccess = function(event) {
+                db = event.target.result;
+                displayLogs();  // Display logs on page load
+            };
+
+            request.onupgradeneeded = function(event) {
+                db = event.target.result;
+                const objectStore = db.createObjectStore("logs", { keyPath: "id", autoIncrement: true });
+                objectStore.createIndex("name", "name", { unique: false });
+                objectStore.createIndex("date", "date", { unique: false });
+                objectStore.createIndex("usage", "usage", { unique: false });
+                objectStore.createIndex("power", "power", { unique: false });
+                objectStore.createIndex("voltage", "voltage", { unique: false });
+                objectStore.createIndex("current", "current", { unique: false });
+                objectStore.createIndex("material", "material", { unique: false });
+                objectStore.createIndex("comment", "comment", { unique: false });
+                objectStore.createIndex("timestamp", "timestamp", { unique: false });
+            };
+        }
+
+        // Save log to IndexedDB
+        function saveLog() {
+            const name = document.getElementById("name").value;
+            const date = document.getElementById("date").value;
+            const usage = document.getElementById("usage").value;
+            const power = document.getElementById("power").value;
+            const voltage = document.getElementById("voltage").value;
+            const current = document.getElementById("current").value;
+            const material = document.getElementById("material").value;
+            const comment = document.getElementById("comment").value || ""; // Default to empty string
+
+            if (!name || !date || !usage || !power || !voltage || !current || !material) {
+                alert("Please fill in all required fields");
+                return;
+            }
+
+            const currentDateTime = new Date();
+            const timestamp = currentDateTime.toLocaleString("en-GB", { hour12: false });
+
+            const transaction = db.transaction(["logs"], "readwrite");
+            const objectStore = transaction.objectStore("logs");
+            const logEntry = {
+                name,
+                date,
+                usage: parseFloat(usage),
+                power: parseFloat(power),
+                voltage: parseFloat(voltage),
+                current: parseFloat(current),
+                material,
+                comment,
+                timestamp
+            };
+
+            const request = objectStore.add(logEntry);
+
+            request.onsuccess = function() {
+                alert("Log saved successfully!");
+                displayLogs();
+            };
+
+            request.onerror = function(event) {
+                console.error("Save error:", event.target.error);
+            };
+        }
+
+        // Display logs from IndexedDB in a table and calculate usage summation
+        function displayLogs() {
+            const logTableBody = document.getElementById("logTable").querySelector("tbody");
+            logTableBody.innerHTML = "";  // Clear table body
+            const usageSummary = document.getElementById("usageSummary");
+            usageSummary.innerHTML = "";  // Clear summary
+
+            const transaction = db.transaction(["logs"], "readonly");
+            const objectStore = transaction.objectStore("logs");
+
+            const logs = [];
+
+            objectStore.openCursor().onsuccess = function(event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    logs.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    // Sort logs by timestamp in descending order
+                    logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                    // Display sorted logs in table
+                    logs.forEach(log => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${log.name}</td>
+                            <td>${log.date}</td>
+                            <td>${log.usage.toFixed(2)}</td>
+                            <td>${log.power.toFixed(2)}</td>
+                            <td>${log.voltage.toFixed(2)}</td>
+                            <td>${log.current.toFixed(2)}</td>
+                            <td>${log.material}</td>
+                            <td>${log.comment || 'N/A'}</td>
+                            <td>${log.timestamp}</td>
+                        `;
+                        logTableBody.appendChild(row);
+                    });
+
+                    // Calculate and display usage time summation by material
+                    const materialUsage = logs.reduce((acc, log) => {
+                        acc[log.material] = (acc[log.material] || 0) + log.usage;
+                        return acc;
+                    }, {});
+
+                    for (const [material, totalUsage] of Object.entries(materialUsage)) {
+                        const summaryItem = document.createElement("li");
+                        summaryItem.textContent = `${material}: ${totalUsage.toFixed(2)} min`;
+                        usageSummary.appendChild(summaryItem);
+                    }
+                }
+            };
+        }
+
+        // Clear all data with confirmation prompt
+        function clearAllData() {
+            if (confirm("Are you sure you want to delete all logs? This action cannot be undone!")) {
+                const transaction = db.transaction(["logs"], "readwrite");
+                const objectStore = transaction.objectStore("logs");
+
+                const clearRequest = objectStore.clear();
+                
+                clearRequest.onsuccess = function() {
+                    alert("All logs have been deleted.");
+                    displayLogs();
+                };
+
+                clearRequest.onerror = function(event) {
+                    console.error("Clear error:", event.target.error);
+                };
+            }
+        }
+
+        // Export logs to CSV
+        function exportLogs() {
+            const transaction = db.transaction(["logs"], "readonly");
+            const objectStore = transaction.objectStore("logs");
+
+            let csvContent = "data:text/csv;charset=utf-8,Name,Date,Usage Time,Power,Voltage,Current,Material,Comment,Timestamp\n";
+
+            objectStore.openCursor().onsuccess = function(event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const log = cursor.value;
+                    csvContent += `${log.name},${log.date},${log.usage},${log.power},${log.voltage},${log.current},${log.material},${log.comment},${log.timestamp}\n`;
+                    cursor.continue();
+                } else {
+                    const encodedUri = encodeURI(csvContent);
+                    const downloadLink = document.createElement("a");
+                    downloadLink.setAttribute("href", encodedUri);
+                    downloadLink.setAttribute("download", "log.csv");
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                }
+            };
+        }
+        
+        // Set current date as default for the date input
+        function setDefaultDate() {
+            const dateInput = document.getElementById("date");
+            const today = new Date();
+            
+            // Format date to YYYY-MM-DD for the input value
+            const formattedDate = today.toISOString().split('T')[0];
+            dateInput.value = formattedDate;
+        }
+
+        // Open database on page load
+        window.onload = function() {
+            openDatabase();
+            setDefaultDate(); // Set default date when the page loads
+        };
+    </script>
+</body>
+</html>

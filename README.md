@@ -4,6 +4,7 @@
 ## [Read Plot](https://haoleih.github.io/HaoleiHui/readplot/read_plot.html)
 ## [mumax3 manual](https://haoleih.github.io/HaoleiHui/manual/mumax3.html)
 ## [logsheet](https://haoleih.github.io/HaoleiHui/manual/SputterLogSheet.html)
+## [markdown preview](https://haoleih.github.io/HaoleiHui/manual/render_markdown.html)
 
 credits to:
 1.  https://pages-themes.github.io/cayman/

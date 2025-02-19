@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screen Recorder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        
+        .container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #startRecording {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+
+        #stopRecording {
+            background-color: #f44336; /* Red */
+            color: white;
+        }
+
+        #stopRecording:disabled {
+            background-color: #ddd; /* Gray */
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <h1>Screen Recorder</h1>
+    <div class="container">
+        <button id="startRecording">Start Recording</button>
+        <button id="stopRecording" disabled>Stop Recording</button>
+    </div>
+
+    <script>
+        let recorder, chunks = [];
+        const startButton = document.getElementById('startRecording');
+        const stopButton = document.getElementById('stopRecording');
+
+        startButton.addEventListener('click', async () => {
+          try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+
+            recorder = new MediaRecorder(stream);
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: 'video/webm' }); // or video/mp4 if supported
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'screen_recording.webm'; // You can customize the file name
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                chunks = []; // Clear chunks for the next recording
+                startButton.disabled = false;
+                stopButton.disabled = true;
+
+            };
+
+            recorder.start();
+            startButton.disabled = true;
+            stopButton.disabled = false;
+          } catch (err) {
+            console.error('Error accessing screen and audio:', err);
+            // Handle error, e.g., display a message to the user
+          }
+        });
+
+        stopButton.addEventListener('click', () => {
+          if (recorder && recorder.state === 'recording') {
+            recorder.stop();
+          }
+        });
+    </script>
+</body>
+</html>
